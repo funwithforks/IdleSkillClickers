@@ -7,11 +7,11 @@ NC='\033[0m'
 GREEN='\033[0;32m'
 CUT='\033[0K'
 CURRENT_SCREEN='fight'
-midas_secs=$((51))
+midas_secs=51
 
 focus_idle_skilling () {
     AW=$(xdotool search --name "Idle Skilling")
-    if [ $AW ]; then
+    if [ '$AW' ]; then
             xdotool windowactivate "${AW}"
         else
             exit
@@ -28,11 +28,12 @@ midas_clicks () {
         xdotool mousemove 2084 1180
         xdotool click --repeat 700 --delay 9 1
 
+        secs=$((midas_secs))
         while [ $secs -gt 0 ]
         do
-            echo -ne "\r   ${GREEN}Paused...${NC} $midas_secs ${CUT}"
+            echo -ne "\r   ${GREEN}Paused...${NC} $secs ${CUT}"
             read -n 1 -t 1 -p "Enter Option to do something else: "$'\r' opto
-            if [ '$opto' == 'r' ]; then
+            if [ "$opto" == 'r' ]; then
                 break
             fi
             : $((secs--))
