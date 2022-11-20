@@ -17,9 +17,29 @@ focus_idle_skilling () {
     fi
 }
 
+get_pid () {
+    CURRENT_PID=$(xdotool getactivewindow getwindowpid)
+}
+
+check_game_running () {
+    CPU_STAT=$(ps -eo %cpu,pid --sort -%cpu | grep $CURRENT_PID | awk '{ print $1 }' )
+    if [ $CPU_STAT == 0 ]; then
+            echo -en "\r    Game Froze. Recovery initiated.${CUT}"
+            pkill TERM $CURRENT_PID
+            steam steam://rungameid/1048370
+            sleep 10
+            get_pid
+            focus_idle_skilling
+            xdotool getactivewindow windowmove 2000 2000
+            xdotool mousemove 2314 1333
+            xdotool click 1
+            sleep 1.5
+            return
+    fi
+}
+
 switch_modes () {
     # takes start and destination as args, then click to destination
-    echo 'hello'
     focus_idle_skilling
 
     if [ $1 == 'midas' ] && [ $2 == 'extract' ]; then
@@ -36,9 +56,11 @@ switch_modes () {
 }
 
 tunnel_extract_farm () {
-    star1=24
-    star2=240
-    star3=2080
+    # most of these star numbers are estimates
+    star0=24
+    star1=190
+    star2=2080
+    star3=20000
     speed=$((24100/60/60))
     tcounter=0
     stars=0
@@ -73,36 +95,55 @@ tunnel_extract_farm () {
 }
 
 midas_clicks () {
-    midas_secs=51
+    midas_secs=37
     while [ $counter -le 10 ]
     do
+        check_game_running
+
         echo -en "\r   ${ORANGE}Midas ${RED}Running...${NC}${CUT}"
     
-    focus_idle_skilling
+        focus_idle_skilling
 
         xdotool key 3
         xdotool mousemove 2084 1180
-        xdotool click --repeat 700 --delay 9 1
+        xdotool click --repeat 675 --delay 9 1
+        # Toggle skills page to fight skills
+        xdotool mousemove 1843 1302; xdotool click 1
 
         secs=$((midas_secs))
         while [ $secs -gt 0 ]
         do
+            if [ $((secs%5)) -eq 0 ]; then
+                    xdotool key 1+2+3+4+5
+            fi
             echo -ne "\r   ${ORANGE}Midas ${GREEN}Paused...${NC} $secs ${CUT}"
             read -n 1 -t 1 -p "Enter Option to do something else: "$'\r' opto
             if [ "$opto" == 'r' ]; then
+                    # return skills to support skills
+                    xdotool mousemove 1843 1302; xdotool click 1
                     break
                 elif [ "$opto" == 'q' ]; then
                     echo ''
                     exit
                 elif [ "$opto" == 'e' ]; then
+                    # return skills to support skills
+                    xdotool mousemove 1843 1302; xdotool click 1
                     switch_modes 'midas' 'extract'
                     return
             fi
             : $((secs--))
         done
+        # return skills to support skills
+        xdotool mousemove 1843 1302; xdotool click 1
     done
 }
- 
+
 echo -e "${ORANGE}Brandonds hilarious Midas Clicker!!!${NC}"
 
-midas_clicks
+main () {
+    focus_idle_skilling
+    get_pid
+    midas_clicks
+}
+
+main
