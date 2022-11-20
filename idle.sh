@@ -28,8 +28,8 @@ check_game_running () {
             pkill TERM $CURRENT_PID
             steam steam://rungameid/1048370
             sleep 10
-            get_pid
             focus_idle_skilling
+            get_pid
             xdotool getactivewindow windowmove 2000 2000
             xdotool mousemove 2314 1333
             xdotool click 1
