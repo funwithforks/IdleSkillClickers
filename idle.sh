@@ -28,7 +28,7 @@ check_game_running () {
     CPU_STAT=$(ps -eo %cpu,pid --sort -%cpu | grep $CURRENT_PID | awk '{ print $1 }' )
     if [ $CPU_STAT == 0 ]; then
             echo -en "\r    Game Froze. Recovery initiated.${CUT}"
-            pkill TERM $CURRENT_PID
+            kill $CURRENT_PID
             steam  steam://rungameid/1048370
             sleep 10
             focus_idle_skilling
@@ -62,16 +62,16 @@ switch_modes () {
 
 
 tunnel_extract_farm () {
-    # most of these star numbers are estimates
-    star0=24
-    star1=181
-    star2=820
-    star3=8200 # was 20000, I believe this goes down as value goes up
-    star4=82000
-    speed=$((550000))
+    # set star to level of bag to farm
+    star=3
+    starwee=$(($star-1))
+    valuedang=52
+    speed=$((1980000))
     tcounter=0
-    stars=0
-    extract_secs=$(($star2/($speed/60/60)))
+
+    # valuedang is the value that reaches the next star. Multiplied by 10^(number of stars) - looking for value formula
+    # speed is the speed per hour in the game after all multipliers and levels, then I convert to per second.
+    extract_secs=$((($valuedang*(10**$starwee))/($speed/60/60)))
 
     xdotool mousemove 1719 992  # get spelunker A
     xdotool click 1
@@ -117,10 +117,12 @@ toggle_bottom_skill () {
 toggle_mark () {
     toggle_bottom_skill
     xdotool key 1
+    sleep 0.1
 
     if [ ! -z $1 ]; then                 # strafe while you're at it
             xdotool mousemove 1999 1311  # strafe has no key
             xdotool click 1
+            sleep 0.1
     fi
 
     toggle_top_skill
@@ -157,13 +159,13 @@ midas_clicks () {
         secs=$((midas_secs))
         while [ $secs -gt 0 ]
         do
-            if [ $((secs%5)) -eq 0 ]; then
-                    xdotool key 1+2+3+4+5
+            if [ $((secs%2)) -eq 0 ]; then
+                    xdotool key 1+2+3+4+5 &
             fi
             echo -ne "\r   ${ORANGE}Midas ${GREEN}Paused...${NC} $secs ${CUT}"
             read -n 1 -t 1 -p "Enter Option to do something else: "$'\r' opto
             if [ "$opto" == 'r' ]; then
-                    # return skills to support skills
+                    echo -ne "\r${CUT}\n"
                     break
                 elif [ "$opto" == 'q' ]; then
                     toggle_top_skill
