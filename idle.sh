@@ -53,9 +53,14 @@ switch_modes () {
             sleep 1
             tunnel_extract_farm && return
         elif [ $1 == 'extract' ] && [ $2 == 'midas' ]; then
+            # works for any screen on top page 1
             xdotool mousemove 1780 891
             xdotool click 1
             sleep 1
+            # bottom skill goes back to page one every time you leave
+            toggle_bottom_skill
+            toggle_bottom_skill
+            toggle_top_skill
             midas_clicks && return
     fi
 }
@@ -129,6 +134,30 @@ toggle_mark () {
 }
 
 
+gain_strafe () {
+    strafe_count=0
+    echo hello
+    while [ $strafe_count -lt 30 ]
+    do
+        # go to portal screen
+        xdotool mousemove 1994 892
+        xdotool click 1
+        sleep 1
+        # go to lava guy
+        xdotool mousemove 1667 1057
+        xdotool click 1
+        sleep .5
+        # go to craft
+        xdotool mousemove 1915 891
+        xdotool click 1
+        sleep 1
+        : $((strafe_count++))
+    done
+    switch_modes 'extract' 'midas'
+    return
+}
+
+
 midas_clicks () {
     midas_secs=34
     strafe=1
@@ -175,6 +204,11 @@ midas_clicks () {
                     toggle_top_skill
                     switch_modes 'midas' 'extract'
                     return
+                elif [ "$opto" == 's' ]; then
+                    # f-strafe
+                    echo strafe
+                    gain_strafe
+                    echo strafe
             fi
             : $((secs--))
         done
