@@ -25,7 +25,7 @@ get_pid () {
 
 
 check_game_running () {
-    CPU_STAT=$(ps -eo %cpu,pid --sort -%cpu | grep $CURRENT_PID | awk '{ print $1 }' )
+    CPU_STAT=$(ps -eo %cpu,pid --sort -%cpu | grep "\b${CURRENT_PID}\b" | awk '{ print $1 }' )
     if [ $CPU_STAT == 0 ]; then
             echo -en "\r    Game Froze. Recovery initiated.${CUT}"
             kill $CURRENT_PID
@@ -116,6 +116,7 @@ toggle_top_skill () {
 toggle_bottom_skill () {
     xdotool mousemove 1812 1366             # location of other skills, assumes on correct page
     xdotool click 1
+    sleep 0.1
 }
 
 
@@ -177,7 +178,8 @@ midas_clicks () {
 
         xdotool key 3                                   # activate Midas
         xdotool mousemove 2084 1180                     # move mouse to empy area
-        xdotool click --repeat 670 --delay 9 1          # click a lot
+        xdotool click --repeat 650 --delay 9 1          # click a lot
+        sleep 0.1
         # Toggle skills page to fight skills
         toggle_top_skill
 
@@ -206,9 +208,7 @@ midas_clicks () {
                     return
                 elif [ "$opto" == 's' ]; then
                     # f-strafe
-                    echo strafe
                     gain_strafe
-                    echo strafe
             fi
             : $((secs--))
         done
