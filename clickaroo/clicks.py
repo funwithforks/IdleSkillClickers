@@ -15,7 +15,7 @@ class Clicker(threading.Thread):
 		self.running = False
 		self.program_running = True
 
-	def do_a_click(self, clicks):
+	def mouse_click(self, clicks):
 		click_count = 0
 		while click_count < clicks:
 			self.mouse.click(self.button)
@@ -33,7 +33,7 @@ class Clicker(threading.Thread):
 
 	# the click loop will run for 5 seconds unless stopped early.
 	def run(self):
-
+		# I'm using pynput, so I can interrupt my clicks without having to kill xdotool
 		while self.program_running:
 			end_time = time.time() + 5
 			while self.running:
@@ -41,6 +41,9 @@ class Clicker(threading.Thread):
 					self.running = False
 				self.mouse.click(self.button)
 				time.sleep(0.001)
+
+	def mouse_move(self, x, y) -> None:
+		self.mouse.move(x, y)
 
 
 class InputMan:
