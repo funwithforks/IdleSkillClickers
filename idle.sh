@@ -169,7 +169,7 @@ midas_clicks () {
         while [ $secs -gt 0 ]
         do
             if [ $((secs%2)) -eq 0 ]; then
-                    xdotool key 1+2+3+4+5 mousemove 2518 1241 click 1 &
+                    xdotool type --terminator T --window $AW 12345T mousemove 2518 1241 click 1 &
             fi
             echo -ne "\r   ${ORANGE}Midas ${GREEN}Paused...${NC} $secs ${CUT}"
             read -n 1 -t 1 -p "Enter Option to do something else: "$'\r' opto

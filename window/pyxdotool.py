@@ -33,6 +33,10 @@ class Window:
 		"""Kills a window"""
 		popen('xdotool windowtool ' + self.windowid)
 
+	def dotype(self, text='12345') -> None:
+		"""Types into a window without needing to focus"""
+		popen('xdotool type --window ' + self.windowid + ' ' + text)
+
 	def focus_idle_skilling(self) -> None:
 		"""pyxdotool.Window.getactivewindow runs 'xdotool windowactivate <window id>
 		to put Idle Skilling in the foreground"""
@@ -57,7 +61,6 @@ class Window:
 	def one_click(self) -> None:
 		"""xdotool click 1"""
 		popen('xdotool click 1')
-
 
 
 if __name__ == '__main__':
