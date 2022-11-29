@@ -78,16 +78,9 @@ tunnel_extract_farm () {
     # speed is the speed per hour in the game after all multipliers and levels, then I convert to per second.
     extract_secs=$((($valuedang*(10**$starwee))/($speed/60/60)))
 
-    xdotool mousemove 1719 992  # get spelunker A
-    xdotool click 1
-    sleep 0.1
-    xdotool mousemove 2493 1267 # assuming ready to extract
-    xdotool click 1
-    sleep 0.1
-    xdotool mousemove 1898 1336 # get bag
-    xdotool click 1
-    sleep 0.1
-    xdotool click 1
+    xdotool mousemove 1719 992 click 1 sleep 0.1          # get spelunker A
+    xdotool mousemove 2493 1267  click 1 sleep 0.1        # assuming ready to extract
+    xdotool mousemove 1898 1336 click 1 sleep 0.1 click 1 # get bag
 
     while [ $tcounter -le 10 ]
     do
@@ -96,39 +89,30 @@ tunnel_extract_farm () {
         sleep 2.4 # wait for animation
         # assuming jump in progress, can cause loss of learning or dig progress.
         # extract/jump location
-        xdotool mousemove 2493 1267
-        xdotool click 1 # jump
-        sleep $(($extract_secs+1))
+        xdotool mousemove 2493 1267 click 1 sleep $(($extract_secs+1)) # jump
         xdotool click 1 # extract
         # open the bag
-        xdotool mousemove 1898 1336
-        xdotool click 1
+        xdotool mousemove 1898 1336 click 1
     done
 }
 
 
 toggle_top_skill () {
-    xdotool mousemove 1843 1302
-    xdotool click 1
+    xdotool mousemove 1843 1302 click 1
 }
 
 
 toggle_bottom_skill () {
-    xdotool mousemove 1812 1366             # location of other skills, assumes on correct page
-    xdotool click 1
-    sleep 0.1
+    xdotool mousemove 1812 1366 click 1 sleep 0.1    # location of other skills, assumes on correct page
 }
 
 
 toggle_mark () {
     toggle_bottom_skill
-    xdotool key 1
-    sleep 0.1
+    xdotool key 1 sleep 0.1
 
     if [ ! -z $1 ]; then                 # strafe while you're at it
-            xdotool mousemove 1999 1311  # strafe has no key
-            xdotool click 1
-            sleep 0.1
+            xdotool mousemove 1999 1311 click 1 sleep 0.1  # strafe has no key
     fi
 
     toggle_top_skill
@@ -141,17 +125,11 @@ gain_strafe () {
     while [ $strafe_count -lt 30 ]
     do
         # go to portal screen
-        xdotool mousemove 1994 892
-        xdotool click 1
-        sleep 1
+        xdotool mousemove 1994 892 click 1 sleep 1
         # go to lava guy
-        xdotool mousemove 1667 1057
-        xdotool click 1
-        sleep .5
+        xdotool mousemove 1667 1057 click 1 sleep .5
         # go to craft
-        xdotool mousemove 1915 891
-        xdotool click 1
-        sleep 1
+        xdotool mousemove 1915 891 click 1 sleep 1
         : $((strafe_count++))
     done
     switch_modes 'extract' 'midas'
@@ -178,7 +156,7 @@ midas_clicks () {
 
         xdotool key 3                                   # activate Midas
         xdotool mousemove 2084 1180                     # move mouse to empy area
-        xdotool click --repeat 650 --delay 9 1          # click a lot
+        xdotool click --repeat 650 --delay 9 1 sleep .1 # click a lot
         sleep 0.1
         # Toggle skills page to fight skills
         toggle_top_skill
@@ -191,7 +169,7 @@ midas_clicks () {
         while [ $secs -gt 0 ]
         do
             if [ $((secs%2)) -eq 0 ]; then
-                    xdotool key 1+2+3+4+5; xdotool mousemove 2518 1241; xdotool click 1 &
+                    xdotool key 1+2+3+4+5 mousemove 2518 1241 click 1 &
             fi
             echo -ne "\r   ${ORANGE}Midas ${GREEN}Paused...${NC} $secs ${CUT}"
             read -n 1 -t 1 -p "Enter Option to do something else: "$'\r' opto

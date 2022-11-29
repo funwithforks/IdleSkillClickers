@@ -1,12 +1,11 @@
 from os import system, popen
-from typing import Union, Optional, Dict, List, Any
+from typing import Union, Any
 import re
 
 
-# this file is for handling window operations in linux
-
 class Window:
-	"""This class will handle window data using xdotool"""
+	"""This class will handle window data using xdotool,
+	I now realize I should not do this..."""
 	def __init__(self):
 		self.pid = self.getactivewindow()
 		self.windowid = self.search()
@@ -22,9 +21,6 @@ class Window:
 		if type(tempid) == str and len(tempid) > 1:
 			# return isid
 			return tempid.strip()
-		else:
-			# Idle Skilling not found
-			return None
 
 	def getactivewindow(self) -> Union[str, None]:
 		"""pyxdotool.Window.getactivewindow runs 'xdotool getactivewindow getwindowpid'
@@ -32,8 +28,10 @@ class Window:
 		pid = popen('xdotool getactivewindow getwindowpid').read()
 		if type(pid) == str and len(pid) > 1:
 			return pid.strip()
-		else:
-			return None
+
+	def windowkill(self) -> None:
+		"""Kills a window"""
+		popen('xdotool windowtool ' + self.windowid)
 
 	def focus_idle_skilling(self) -> None:
 		"""pyxdotool.Window.getactivewindow runs 'xdotool windowactivate <window id>
@@ -61,15 +59,21 @@ class Window:
 		popen('xdotool click 1')
 
 
-dork = Window()
-print('after print')
-print('pid')
-print(dork.pid)
-print('window id')
-print(dork.windowid)
-print('window geometry')
-print(dork.getwindowgeometry())
-print('focus window')
-dork.focus_idle_skilling()
-print('mouse move')
-dork.mousemove(dork.getwindowgeometry().get('Geometry')[0], dork.getwindowgeometry().get('Geometry')[1])
+
+if __name__ == '__main__':
+	dork = Window()
+	print('after print')
+	print('pid')
+	print(dork.pid)
+	print('window id')
+	print(dork.windowid)
+	print('window geometry')
+	print(dork.getwindowgeometry())
+	print('focus window')
+	dork.focus_idle_skilling()
+	print('mouse move')
+	# dork.mousemove(dork.getwindowgeometry().get('Geometry')[0], dork.getwindowgeometry().get('Geometry')[1])
+	# test - move mouse to halfway in and halfway down the desired window. Much Success.
+	dork.mousemove(
+		str(int(dork.getwindowgeometry().get('Position')[0]) + int(int(dork.getwindowgeometry().get('Geometry')[0]) / 2)),
+		str(int(dork.getwindowgeometry().get('Position')[1]) + int(int(dork.getwindowgeometry().get('Geometry')[1]) / 2)))
