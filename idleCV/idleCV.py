@@ -3,14 +3,13 @@ from PIL import ImageGrab
 from typing import Union
 
 
-def screenshot(x1, x2, y2, y1) -> Union[ImageGrab, None]:
-	tmp_screenshot = ImageGrab.grab()
-	tmp2 = tmp_screenshot.crop((x1, x2, y1, y2))
-	del tmp_screenshot
-	tmp2.save('tmp2.png', 'png')
-
-	if tmp2:
-		return tmp2
+def screenshot(x1: int, x2: int, y2: int, y1: int) -> Union[ImageGrab.grab, None]:
+	idle_screenshot = ImageGrab.grab(
+		bbox=[x1, x2, y1, y2]
+	)
+	idle_screenshot.save('tmp2.png', 'png')
+	if idle_screenshot:
+		return idle_screenshot
 
 
 if __name__ == "__main__":
