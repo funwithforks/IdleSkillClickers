@@ -11,7 +11,7 @@ class Window:
 		self.windowid = self.search()
 
 	class IdleWindow:
-		"""This will hold and update data about the idle skilling window"""
+		"""This will hold data about the idle skilling window"""
 
 	def search(self) -> Union[str, None]:
 		"""pyxdotool.Window.search runs 'xdotool search --name <str>' to find
@@ -62,6 +62,11 @@ class Window:
 		"""xdotool click 1"""
 		popen('xdotool click 1')
 
+	def make_relative(self, percentx, percenty) -> list[str]:
+		tmp = self.getwindowgeometry()
+		return [str(int(tmp.get('Position')[0]) + int(int(tmp.get('Geometry')[0]) / (100 / percentx))),
+				str(int(tmp.get('Position')[1]) + int(int(tmp.get('Geometry')[1]) / (100 / percenty)))]
+
 
 if __name__ == '__main__':
 	dork = Window()
@@ -77,6 +82,4 @@ if __name__ == '__main__':
 	print('mouse move')
 	# dork.mousemove(dork.getwindowgeometry().get('Geometry')[0], dork.getwindowgeometry().get('Geometry')[1])
 	# test - move mouse to halfway in and halfway down the desired window. Much Success.
-	dork.mousemove(
-		str(int(dork.getwindowgeometry().get('Position')[0]) + int(int(dork.getwindowgeometry().get('Geometry')[0]) / 2)),
-		str(int(dork.getwindowgeometry().get('Position')[1]) + int(int(dork.getwindowgeometry().get('Geometry')[1]) / 2)))
+	dork.mousemove(*dork.make_relative(50, 50))
