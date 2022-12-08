@@ -7,4 +7,3 @@ if __name__ == '__main__':
 	#                ctrl+alt+q to quit
 	clickaroni = Clickaroo()
 	print(clickaroni.click_thread.running)
-	print('hello')
