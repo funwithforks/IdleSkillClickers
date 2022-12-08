@@ -39,8 +39,8 @@ class Clicker(threading.Thread):
 			while self.running:
 				if time.time() >= end_time:
 					self.running = False
-				self.mouse.click(self.button)
-				time.sleep(0.001)
+				self.mouse.click(self.button, 200)
+				time.sleep(0.1)
 
 	def mouse_move(self, x, y) -> None:
 		self.mouse.move(x, y)
@@ -50,7 +50,6 @@ class InputMan:
 
 	def __init__(self, owner):
 		self.combination = {Key.ctrl, KeyCode(char='q')}
-		self.is_paused = False
 		self.listener = GlobalHotKeys({
 			'<ctrl>+<alt>+p': self.toggle_pause,
 			'<ctrl>+<alt>+q': self.exit_out
@@ -59,13 +58,17 @@ class InputMan:
 		self.clickaroni = owner
 
 	def toggle_pause(self):
-		if not self.is_paused:
-			self.is_paused = True
+		# currently starts and stops clicking, but the clicker command will move once there is automation
+		if not self.clickaroni.click_thread.running:
+			# self.clicker_running = True
+			self.clickaroni.click_thread.running = True
+			self.clickaroni.click_thread.start_clicking()
+			# this will resume an action queue
+		else:
+			# self.clicker_running = False
+			self.clickaroni.click_thread.running = False
 			self.clickaroni.click_thread.stop_clicking()
 			# pausing all other actions to be added later
-		else:
-			self.is_paused = False
-			# this will resume an action queue
 
 	def exit_out(self):
 		self.clickaroni.click_thread.exit()
