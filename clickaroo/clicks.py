@@ -1,7 +1,19 @@
 import time
 import threading
-from pynput.mouse import Button, Controller
-from pynput.keyboard import KeyCode, Key, GlobalHotKeys
+from pynput.mouse import Button, Controller as Mouse
+from pynput.keyboard import KeyCode, Key, GlobalHotKeys, Controller as Keyboard
+
+
+class Tapper(threading.Thread):
+	def __init__(self):
+		super(Tapper, self).__init__()
+		self.keyboard = Keyboard()
+
+	def taps(self, keys='') -> None:
+		if not keys:
+			self.keyboard.type('12345')
+		else:
+			self.keyboard.type(keys)
 
 
 # click class
@@ -9,7 +21,7 @@ class Clicker(threading.Thread):
 
 	def __init__(self, delay, button):
 		super(Clicker, self).__init__()
-		self.mouse = Controller()
+		self.mouse = Mouse()
 		self.delay = delay
 		self.button = button
 		self.running = False
@@ -52,20 +64,22 @@ class InputMan:
 		self.combination = {Key.ctrl, KeyCode(char='q')}
 		self.listener = GlobalHotKeys({
 			'<ctrl>+<alt>+p': self.toggle_pause,
-			'<ctrl>+<alt>+q': self.exit_out
+			'<ctrl>+<alt>+q': self.exit_out,
+			'<ctrl>+<alt>+t': self.taps,
 		})
 		self.listener.start()
 		self.clickaroni = owner
 
+	def taps(self) -> None:
+		self.clickaroni.tapper_thread.taps()
+
 	def toggle_pause(self):
 		# currently starts and stops clicking, but the clicker command will move once there is automation
 		if not self.clickaroni.click_thread.running:
-			# self.clicker_running = True
 			self.clickaroni.click_thread.running = True
 			self.clickaroni.click_thread.start_clicking()
 			# this will resume an action queue
 		else:
-			# self.clicker_running = False
 			self.clickaroni.click_thread.running = False
 			self.clickaroni.click_thread.stop_clicking()
 			# pausing all other actions to be added later
@@ -79,6 +93,9 @@ class Clickaroo:
 	def __init__(self):
 		self.click_thread = Clicker(delay=0.001, button=Button.left)
 		self.click_thread.start()
+
+		self.tapper_thread = Tapper()
+		self.tapper_thread.start()
 
 		self.inputs = InputMan(self)
 
