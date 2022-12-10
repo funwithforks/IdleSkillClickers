@@ -1,7 +1,8 @@
 from multiprocessing import Queue
 import datetime
 import time
-import threading
+from threading import Thread
+from clickaroo.clicks import Clickaroo
 
 
 class TestAction:
@@ -11,6 +12,7 @@ class TestAction:
 		self.queue_dict: dict = {
 			'midas': self.midas,
 			'spelunker': self.spelunker,
+			'strafe': self.strafe,
 		}
 		self.current_task: str = 'midas'
 
@@ -38,6 +40,23 @@ class TestAction:
 		time.sleep(.2)
 		print('jump countdown started\n')
 
+	def strafe(self):
+		self.current_location = 'portal'
+		count = 0
+		while count < 2:
+			print('mouse move to and click portal button')
+			self.current_location = 'portal'
+			time.sleep(1)
+			print("mouse move to and click dude")
+			time.sleep(.5)
+			print('mouse move to and click tunnel button')
+			self.current_location = 'tunnel'
+			time.sleep(1)
+			count += 1
+		# setting task to midas since queue repeats last task if queue is empty
+		self.current_task = 'midas'
+		self.transitions(self.current_task)
+
 	def transitions(self, destination):
 		# I need to store a lot of click patterns in here.
 		print(f'You are currently in {self.current_location} and going to {destination}...')
@@ -47,10 +66,9 @@ class TestAction:
 		print('you have arrived to where you are going\n')
 
 
-class TestQueue(threading.Thread):
+class TestQueue:
 
 	def __init__(self):
-		super(TestQueue, self).__init__()
 		self.q = Queue()
 		self.time_dict: dict = {
 			'midas': 0
@@ -58,12 +76,17 @@ class TestQueue(threading.Thread):
 		self.start_time: datetime = datetime.time()
 		self.current_task = None
 		self.actions = TestAction()
-		process = threading.Thread(target=self.the_queue)
-		process.start()
+		self.clickaroni = Clickaroo()
+
+		# setting daemon to True allows program to stop when clicker receives the quit keys
+		self.process = Thread(target=self.the_queue, daemon=True)
+		self.process.start()
 
 	def the_queue(self) -> None:
 		time.sleep(1)
 		while True:
+			if not self.clickaroni.click_thread.program_running:
+				quit()
 			self.countdown_timers()
 			print(f'current task is {self.actions.current_task}')
 			if self.q.empty():
@@ -71,7 +94,7 @@ class TestQueue(threading.Thread):
 			else:
 				task = self.q.get()
 				if self.actions.current_task != task:
-					print(f'current task: {self.actions.current_task}, task: {task}')
+					print(f'current task: {self.actions.current_task}, new task: {task}')
 					self.actions.current_task = task
 					self.actions.transitions(task)
 				self.actions.queue_dict.get(self.actions.current_task)()
@@ -96,7 +119,7 @@ if __name__ == '__main__':
 	# t = TestAction()
 	# q.add_to_queue((print, 'hellodo'))
 	q.add_to_queue('midas')
+	q.add_to_queue('strafe')
 	q.add_to_queue('spelunker')
 	# q.the_queue()
 	print('thread test')
-
