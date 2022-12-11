@@ -14,6 +14,7 @@ class Tapper(threading.Thread):
 			self.keyboard.type('12345')
 		else:
 			self.keyboard.type(keys)
+		time.sleep(.1)
 
 
 # click class
@@ -32,6 +33,7 @@ class Clicker(threading.Thread):
 		while click_count < clicks:
 			self.mouse.click(self.button)
 			click_count += 1
+			time.sleep(.02)
 
 	def start_clicking(self):
 		self.running = True
@@ -51,8 +53,8 @@ class Clicker(threading.Thread):
 			while self.running:
 				if time.time() >= end_time:
 					self.running = False
-				self.mouse.click(self.button, 200)
-				time.sleep(0.1)
+				self.mouse.click(self.button)
+				time.sleep(.1)
 
 	def mouse_move(self, x, y) -> None:
 		# mouse.move is relative mouse.position is absoute.
