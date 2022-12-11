@@ -3,9 +3,10 @@ import datetime
 import time
 from threading import Thread
 from clickaroo.clicks import Clickaroo
+from window.pyxdotool import Window
 
 
-class TestAction:
+class Action:
 	def __init__(self):
 		self.current_location: str = 'midas'
 		self.next_location: str = ''
@@ -16,10 +17,43 @@ class TestAction:
 		}
 		self.current_task: str = 'midas'
 
+		self.clickaroni = Clickaroo()
+		self.xdo = Window()
+
+	def make_relative(self, percentx, percenty) -> list[int]:
+		tmp = self.xdo.getwindowgeometry()
+		return [int(tmp.get('Position')[0]) + int(int(tmp.get('Geometry')[0]) / (100 / percentx)),
+				int(tmp.get('Position')[1]) + int(int(tmp.get('Geometry')[1]) / (100 / percenty))]
+
+	def rel_mouse_move(self, percentx, percenty, click: bool) -> None:
+		self.clickaroni.click_thread.mouse_move(*self.make_relative(percentx, percenty))
+		if click:
+			self.clickaroni.click_thread.mouse_click(1)
+
+	def toggle_top_skill(self):
+		top_toggle_percents = [25, 82]
+		# self.xdo.rel_mouse_move(*top_toggle_percents, True) # xdotool version
+		self.rel_mouse_move(*top_toggle_percents, True)     # pynput version
+
+	def toggle_bottom_skill(self):
+		bottom_toggle_percents = [21, 94]
+		self.rel_mouse_move(*bottom_toggle_percents, True)
+		self.clickaroni.tapper_thread.taps('1')
+
+	def toggle_mark(self):
+		self.toggle_bottom_skill()
+		time.sleep(.1)
+		self.clickaroni.tapper_thread.taps('1')
+		time.sleep(.1)
+		self.toggle_top_skill()
+		time.sleep(.1)
+
 	def midas(self):
+		# currently assuming it's ready for midas...
 		self.current_location = 'midas'
 		print('doing midas click routine')
 		print('readying midas')
+		self.toggle_mark()
 		time.sleep(1)
 		print('clicking')
 		time.sleep(5)
@@ -75,8 +109,7 @@ class TestQueue:
 		}
 		self.start_time: datetime = datetime.time()
 		self.current_task = None
-		self.actions = TestAction()
-		self.clickaroni = Clickaroo()
+		self.actions = Action()
 
 		# setting daemon to True allows program to stop when clicker receives the quit keys
 		self.process = Thread(target=self.the_queue, daemon=True)
@@ -85,8 +118,6 @@ class TestQueue:
 	def the_queue(self) -> None:
 		time.sleep(1)
 		while True:
-			if not self.clickaroni.click_thread.program_running:
-				quit()
 			self.countdown_timers()
 			print(f'current task is {self.actions.current_task}')
 			if self.q.empty():
@@ -123,3 +154,4 @@ if __name__ == '__main__':
 	q.add_to_queue('spelunker')
 	# q.the_queue()
 	print('thread test')
+	q.actions.toggle_mark()

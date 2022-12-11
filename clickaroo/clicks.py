@@ -31,7 +31,7 @@ class Clicker(threading.Thread):
 		click_count = 0
 		while click_count < clicks:
 			self.mouse.click(self.button)
-			clicks -= 1
+			click_count += 1
 
 	def start_clicking(self):
 		self.running = True
@@ -55,7 +55,8 @@ class Clicker(threading.Thread):
 				time.sleep(0.1)
 
 	def mouse_move(self, x, y) -> None:
-		self.mouse.move(x, y)
+		# mouse.move is relative mouse.position is absoute.
+		self.mouse.position = (x, y)
 
 
 class InputMan:

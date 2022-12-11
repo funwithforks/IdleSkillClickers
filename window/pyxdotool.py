@@ -16,11 +16,10 @@ class Window:
 	def search(self) -> Union[str, None]:
 		"""pyxdotool.Window.search runs 'xdotool search --name <str>' to find
 		idle skilling"""
-		#isid = popen('xdotool search --name "^Idle Skilling$"')
-		tempid = popen('xdotool search --name "pyxdotool"').read()
-		if type(tempid) == str and len(tempid) > 1:
-			# return isid
-			return tempid.strip()
+		isid = popen('xdotool search --name "^Idle Skilling$"').read()
+		#tempid = popen('xdotool search --name "pyxdotool"').read()
+		if type(isid) == str and len(isid) > 1:
+			return isid.strip()
 
 	def getactivewindow(self) -> Union[str, None]:
 		"""pyxdotool.Window.getactivewindow runs 'xdotool getactivewindow getwindowpid'
@@ -58,6 +57,11 @@ class Window:
 		"""xdotool mousemove x y"""
 		popen('xdotool mousemove ' + x + ' ' + y)
 
+	def rel_mouse_move(self, percentx, percenty, click: bool = False) -> None:
+		self.mousemove(*self.make_relative(percentx, percenty))
+		if click:
+			self.one_click()
+
 	def one_click(self) -> None:
 		"""xdotool click 1"""
 		popen('xdotool click 1')
@@ -74,7 +78,11 @@ if __name__ == '__main__':
 	print('pid')
 	print(dork.pid)
 	print('window id')
-	print(dork.windowid)
+	windowid = dork.windowid
+	if windowid:
+		print(dork.windowid)
+	else:
+		print('\t\tIdle Skilling not running. Expect an error...')
 	print('window geometry')
 	print(dork.getwindowgeometry())
 	print('focus window')
@@ -82,4 +90,4 @@ if __name__ == '__main__':
 	print('mouse move')
 	# dork.mousemove(dork.getwindowgeometry().get('Geometry')[0], dork.getwindowgeometry().get('Geometry')[1])
 	# test - move mouse to halfway in and halfway down the desired window. Much Success.
-	dork.mousemove(*dork.make_relative(50, 50))
+	dork.mousemove(*dork.make_relative(40, 12))
