@@ -39,11 +39,12 @@ def image_find(background, image):
 	cv.imwrite('bgbw.png', backgroung_cv)
 	cv.imwrite('imbw.png', image_cv)
 	# w, h = image_cv.shape[::-1]   # color
-	w, h = image_cv.shape           # greyscale
+	w, h = image_cv.shape[::-1]           # greyscale
 	loc = np.where(res >= 0.8)
 	if test:
 		result_img = cv.cvtColor(np.array(backgroung_cv), cv.COLOR_GRAY2BGR)
 		for pt in zip(*loc[::-1]):
+			# cv2.rectangle(image, start_point, end_point, color, thickness)
 			cv.rectangle(result_img, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
 
 			cv.imwrite('colorrec.png', result_img)
@@ -52,10 +53,21 @@ def image_find(background, image):
 	return (res >= 0.7).any()
 
 
+def image_find_t(background, image):
+	# image_find_t takes in a png with transparency in the background and uses it as the
+	# mask and the template. So far it seems to work well at finding the image with any background.
+	# Although I get false positives if I am below 0.91.
+	# I suppose I could further crop the screenshot for each match to where the match should be.
+	background_cv = cv.cvtColor(np.array(background), cv.TM_CCORR_NORMED)
+	result = cv.matchTemplate(background_cv, image, cv.TM_CCORR_NORMED, None, image)
+
+	return (result >= 0.91).any()
+
+
 if __name__ == "__main__":
 	# scrnsht = screenshot(10, 150, 200, 250)
 	# scrnsht.save('tmp2.png', 'png')
-	scrnsht = cv.imread('./images/train_button.png')
+	scrnsht = cv.imread('./images/effects_on_t.png', cv.IMREAD_COLOR)
 	backgrd = screenshot(1600, 824, (1600 + 960), (824 + 572))
 	tmp = ImageGrab.grab()
-	print(image_find(backgrd, scrnsht))
+	print(image_find_t(backgrd, scrnsht))

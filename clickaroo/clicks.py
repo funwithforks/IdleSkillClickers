@@ -28,25 +28,25 @@ class Clicker(threading.Thread):
 		self.running = False
 		self.program_running = True
 
-	def mouse_click(self, clicks):
+	def mouse_click(self, clicks) -> None:
 		click_count = 0
 		while click_count < clicks:
 			self.mouse.click(self.button)
 			click_count += 1
 			time.sleep(.02)
 
-	def start_clicking(self):
+	def start_clicking(self) -> None:
 		self.running = True
 
-	def stop_clicking(self):
+	def stop_clicking(self) -> None:
 		self.running = False
 
-	def exit(self):
+	def exit(self) -> None:
 		self.stop_clicking()
 		self.program_running = False
 
 	# the click loop will run for 5 seconds unless stopped early.
-	def run(self):
+	def run(self) -> None:
 		# I'm using pynput, so I can interrupt my clicks without having to kill xdotool
 		while self.program_running:
 			end_time = time.time() + 5
@@ -76,7 +76,7 @@ class InputMan:
 	def taps(self) -> None:
 		self.clickaroni.tapper_thread.taps()
 
-	def toggle_pause(self):
+	def toggle_pause(self) -> None:
 		# currently starts and stops clicking, but the clicker command will move once there is automation
 		if not self.clickaroni.click_thread.running:
 			self.clickaroni.click_thread.running = True
@@ -87,7 +87,12 @@ class InputMan:
 			self.clickaroni.click_thread.stop_clicking()
 			# pausing all other actions to be added later
 
-	def exit_out(self):
+	def start_clicking(self) -> None:
+		if not self.clickaroni.click_thread.running:
+			self.clickaroni.click_thread.running = True
+			self.clickaroni.click_thread.start_clicking()
+
+	def exit_out(self) -> None:
 		self.clickaroni.click_thread.exit()
 
 

@@ -10,6 +10,7 @@ class Action:
 	def __init__(self):
 		self.current_location: str = 'midas'
 		self.next_location: str = ''
+		self.midas_test_thread = Thread(target=self.midas, daemon=True)
 		self.queue_dict: dict = {
 			'midas': self.midas,
 			'spelunker': self.spelunker,
@@ -60,7 +61,7 @@ class Action:
 			self.toggle_top_skill()
 			time.sleep(.1)
 
-		def fight_loop(self, duration):
+		def fight_loop(self, duration) -> None:
 			self.toggle_top_skill()
 			endtime = time.time() + duration
 			while time.time() <= endtime:
@@ -68,7 +69,12 @@ class Action:
 				time.sleep(3)
 			self.toggle_top_skill()
 
-	def midas(self):
+	def interrupt_me(self, func) -> None:
+		# this function will be a thread that will run the task. It will be terminated
+		# when pause key pressed.
+		self.queue_dict.get(func)()
+
+	def midas(self) -> None:
 		# currently assuming it's ready for midas...
 		# currently 40 seconds from midas start to midas ready.
 		midas = [50, 60]
@@ -77,18 +83,18 @@ class Action:
 		self.tasklet.toggle_mark()
 		self.clickaroni.tapper_thread.taps('3')
 		time.sleep(.1)
-		print('clicking')
+		print('clicking', end='')
 		self.tasklet.rel_mouse_move(*midas, True)
-		self.clickaroni.inputs.toggle_pause()
+		self.clickaroni.inputs.start_clicking()
 		time.sleep(5.25)
-		print('removing mark')
+		print('\rremoving mark', end='')
 		self.tasklet.toggle_mark(True)
 		if self.previous_task == 'midas' or self.previous_task == '':
-			print('sleeping for 35 more seconds...')
+			print('\rfight loop for 35 more seconds...', end='')
 			self.tasklet.fight_loop(35.3)
-		print('done\n')
+		print('\rdone\n')
 
-	def spelunker(self):
+	def spelunker(self) -> None:
 		self.current_location = 'spelunker'
 		print(f"you are in the spelunker area")
 		time.sleep(.5)
@@ -147,7 +153,7 @@ class TestQueue:
 			self.countdown_timers()
 			print(f'current task is {self.actions.current_task},\tprevious task is {self.actions.previous_task}')
 			if self.q.empty():
-				self.actions.queue_dict.get(self.actions.current_task)()
+				task = self.actions.current_task
 			else:
 				task = self.q.get()
 				if self.actions.current_task != task:
@@ -155,8 +161,11 @@ class TestQueue:
 					self.actions.current_task = task
 					self.actions.transitions(task)
 
-				self.actions.queue_dict.get(self.actions.current_task)()
-				self.actions.previous_task = task
+			self.interrupt_task = Thread(target=self.actions.interrupt_me(task), daemon=True)
+			self.interrupt_task.start()
+			self.interrupt_task.join()
+
+			self.actions.previous_task = task
 
 			# sleep is for print testing
 			time.sleep(2.1)
