@@ -1,3 +1,4 @@
+import time
 from os import system, popen
 from typing import Union, Any
 import re
@@ -46,9 +47,9 @@ class Window:
 		line1 = re.search("(\d+),(\d+)\s\(screen:\s(\d+)", output[1])
 		line2 = re.search("(\d+)x(\d+)", output[2])
 		data = {
-			'Position': [line1.group(1), line1.group(2)],
-			'Screen': line1.group(3),
-			'Geometry': [line2.group(1), line2.group(2)]
+			'Position': [int(line1.group(1)), int(line1.group(2))],
+			'Screen': int(line1.group(3)),
+			'Geometry': [int(line2.group(1)), int(line2.group(2))]
 		}
 
 		return data
@@ -66,10 +67,27 @@ class Window:
 		"""xdotool click 1"""
 		popen('xdotool click 1')
 
-	def make_relative(self, percentx, percenty) -> list[str]:
+	def x_y_percent(self, x: int, y: int) -> list[int]:
+		"""x_y_percent takes in an x and y coord and turns it into a percent coord for the game window."""
+		# {'Position': ['1601', '824'], 'Screen': '0', 'Geometry': ['959', '572']}
 		tmp = self.getwindowgeometry()
-		return [str(int(tmp.get('Position')[0]) + int(int(tmp.get('Geometry')[0]) / (100 / percentx))),
-				str(int(tmp.get('Position')[1]) + int(int(tmp.get('Geometry')[1]) / (100 / percenty)))]
+		gx = tmp.get('Geometry')[0]
+		gy = tmp.get('Geometry')[1]
+		return [int((x / gx) * 100), int((y / gy) * 100), tmp]
+
+	def make_relative(self, percentx: int = None, percenty: int = None, values: list = None) -> list[str]:
+
+		if values:
+			tmp = values[2]
+			percentx = values[0]
+			percenty = values[1]
+		else:
+			tmp = self.getwindowgeometry()
+		return [str(tmp.get('Position')[0] + int(tmp.get('Geometry')[0] / (100 / percentx))),
+				str(tmp.get('Position')[1] + int(tmp.get('Geometry')[1] / (100 / percenty)))]
+
+	def card_mouse(self, x:int, y:int) -> None:
+		self.mousemove(*dork.make_relative(values=dork.x_y_percent(x, y)))
 
 
 if __name__ == '__main__':
@@ -90,4 +108,5 @@ if __name__ == '__main__':
 	print('mouse move')
 	# dork.mousemove(dork.getwindowgeometry().get('Geometry')[0], dork.getwindowgeometry().get('Geometry')[1])
 	# test - move mouse to halfway in and halfway down the desired window. Much Success.
-	dork.mousemove(*dork.make_relative(40, 12))
+	# dork.mousemove(*dork.make_relative(percentx=40, percenty=12))
+	dork.card_mouse(100, 300)

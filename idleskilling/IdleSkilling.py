@@ -1,9 +1,11 @@
-from multiprocessing import Queue
+import threading
+from multiprocessing import Queue, Process, Value
 import datetime
 import time
 from threading import Thread
 from clickaroo.clicks import Clickaroo
 from window.pyxdotool import Window
+from idleCV.idleCV import IdleCV
 
 
 class Action:
@@ -19,18 +21,67 @@ class Action:
 		self.current_task: str = 'midas'
 		self.previous_task: str = ''
 
-		self.clickaroni = Clickaroo()
+		self.clickaroni = Clickaroo(self)
 		self.xdo = Window()
 		self.tasklet = self.Tasklet(self)
+
+		self.card_thread = threading.Thread(
+			target=self.run_process,
+			args=[self.tasklet.card_clicker], daemon=True)
+		self.card_thread.start()
+
+	def run_process(self, function):
+		process = Process(target=function)
+		process.start()
+
+	class CardMon(threading.Thread):
+
+		def __init__(self, card_function):
+			threading.Thread.__init__(self)
+			self.runnable = card_function
+			self.daemon = True
+
+		def run(self) -> None:
+			self.runnable()
 
 	class Tasklet:
 		def __init__(self, owner):
 			self.action = owner
+			self.idle_cv = IdleCV()
 
-		def make_relative(self, percentx, percenty) -> list[int]:
+		def card_clicker(self):
+			while True:
+				backgrd = self.idle_cv.screenshot(1600, 824, (1600 + 960), (824 + 572))
+				a = self.idle_cv.find_card(backgrd)
+
+				# print('test')
+				if a:
+					print(a)
+					for card in a:
+						self.card_mouse(x=card[0], y=card[1])
+				time.sleep(1)
+
+		def x_y_percent(self, x: int, y: int) -> list[int]:
+			"""x_y_percent takes in an x and y coord and turns it into a percent coord for the game window."""
+			# {'Position': ['1601', '824'], 'Screen': '0', 'Geometry': ['959', '572']}
 			tmp = self.action.xdo.getwindowgeometry()
-			return [int(tmp.get('Position')[0]) + int(int(tmp.get('Geometry')[0]) / (100 / percentx)),
-					int(tmp.get('Position')[1]) + int(int(tmp.get('Geometry')[1]) / (100 / percenty))]
+			gx = tmp.get('Geometry')[0]
+			gy = tmp.get('Geometry')[1]
+			return [int((x / gx) * 100), int((y / gy) * 100), tmp]
+
+		def make_relative(self, percentx: int = None, percenty: int = None, values: list = None) -> list[str]:
+			if values:
+				tmp = values[2]
+				percentx = values[0]
+				percenty = values[1]
+			else:
+				tmp = self.action.xdo.getwindowgeometry()
+			return [str(tmp.get('Position')[0] + int(tmp.get('Geometry')[0] / (100 / percentx))),
+					str(tmp.get('Position')[1] + int(tmp.get('Geometry')[1] / (100 / percenty)))]
+
+		def card_mouse(self, x: int, y: int) -> None:
+			self.action.clickaroni.click_thread.mouse_move(*self.make_relative(values=self.x_y_percent(x, y)))
+			self.action.clickaroni.click_thread.mouse_click(1)
 
 		def rel_mouse_move(self, percentx, percenty, click: bool) -> None:
 			self.action.clickaroni.click_thread.mouse_move(*self.make_relative(percentx, percenty))
@@ -69,10 +120,18 @@ class Action:
 				time.sleep(3)
 			self.toggle_top_skill()
 
-	def interrupt_me(self, func) -> None:
+	def interrupt_cards(self, funcy=None) -> None:
 		# this function will be a thread that will run the task. It will be terminated
 		# when pause key pressed.
-		self.queue_dict.get(func)()
+		funcy()
+
+	def interrupt_me(self, func=None, funcy=None) -> None:
+		# this function will be a thread that will run the task. It will be terminated
+		# when pause key pressed.
+		if func:
+			self.queue_dict.get(func)()
+		if funcy:
+			funcy()
 
 	def midas(self) -> None:
 		# currently assuming it's ready for midas...
@@ -143,12 +202,18 @@ class TestQueue:
 		self.start_time: datetime = datetime.time()
 		self.actions = Action()
 
+		# self.interrupt_cv = Thread(target=self.actions.interrupt_cards(funcy=self.actions.tasklet.card_clicker),
+		#						daemon=True)
+		# self.interrupt_cv.start()
+
 		# setting daemon to True allows program to stop when clicker receives the quit keys
 		self.process = Thread(target=self.the_queue, daemon=True)
 		self.process.start()
+		# self.actions.card_mon.start()
 
 	def the_queue(self) -> None:
 		time.sleep(1)
+
 		while True:
 			self.countdown_timers()
 			print(f'current task is {self.actions.current_task},\tprevious task is {self.actions.previous_task}')
@@ -161,7 +226,7 @@ class TestQueue:
 					self.actions.current_task = task
 					self.actions.transitions(task)
 
-			self.interrupt_task = Thread(target=self.actions.interrupt_me(task), daemon=True)
+			self.interrupt_task = Thread(target=self.actions.interrupt_me(func=task), daemon=True)
 			self.interrupt_task.start()
 			self.interrupt_task.join()
 

@@ -44,6 +44,8 @@ class Clicker(threading.Thread):
 	def exit(self) -> None:
 		self.stop_clicking()
 		self.program_running = False
+		quit()
+		exit()
 
 	# the click loop will run for 5 seconds unless stopped early.
 	def run(self) -> None:
@@ -58,7 +60,7 @@ class Clicker(threading.Thread):
 
 	def mouse_move(self, x, y) -> None:
 		# mouse.move is relative mouse.position is absoute.
-		self.mouse.position = (x, y)
+		self.mouse.position = (int(x), int(y))
 
 
 class InputMan:
@@ -93,12 +95,15 @@ class InputMan:
 			self.clickaroni.click_thread.start_clicking()
 
 	def exit_out(self) -> None:
+		self.clickaroni.owner.card_thread.terminate()
 		self.clickaroni.click_thread.exit()
 
 
 class Clickaroo:
 
-	def __init__(self):
+	def __init__(self, owner):
+		self.owner = owner
+
 		self.click_thread = Clicker(delay=0.001, button=Button.left)
 		self.click_thread.start()
 
