@@ -8,6 +8,11 @@ from window.pyxdotool import Window
 from idleCV.idleCV import IdleCV
 
 
+#adding a comment to see if contributions will count
+def delete_me():
+	...
+
+
 class Action:
 	def __init__(self):
 		self.current_location: str = 'midas'
