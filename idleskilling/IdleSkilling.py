@@ -25,6 +25,7 @@ class Action:
 		self.xdo = Window()
 		self.tasklet = self.Tasklet(self)
 
+		self.card_stop = False
 		self.card_thread = threading.Thread(
 			target=self.run_process,
 			args=[self.tasklet.card_clicker], daemon=True)
@@ -33,6 +34,10 @@ class Action:
 	def run_process(self, function):
 		process = Process(target=function)
 		process.start()
+		while True:
+			if self.card_stop:
+				process.terminate()
+			time.sleep(0.5)
 
 	class CardMon(threading.Thread):
 
@@ -202,10 +207,6 @@ class TestQueue:
 		self.start_time: datetime = datetime.time()
 		self.actions = Action()
 
-		# self.interrupt_cv = Thread(target=self.actions.interrupt_cards(funcy=self.actions.tasklet.card_clicker),
-		#						daemon=True)
-		# self.interrupt_cv.start()
-
 		# setting daemon to True allows program to stop when clicker receives the quit keys
 		self.process = Thread(target=self.the_queue, daemon=True)
 		self.process.start()
@@ -249,5 +250,3 @@ class TestQueue:
 if __name__ == '__main__':
 	q = TestQueue()
 	q.add_to_queue('midas')
-	# q.add_to_queue('strafe')
-	# q.add_to_queue('spelunker')

@@ -114,7 +114,7 @@ class IdleCV:
 			# scrnsht = cv.imread('./images/card_mask.png', cv.IMREAD_COLOR)
 			backgrd = self.screenshot(1600, 824, (1600 + 960), (824 + 572))
 			# self.image_find_t(backgrd, scrnsht)
-			a = self.find_card(*backgrd)
+			a = self.find_card(backgrd)
 			if a:
 				print(a)
 			time.sleep(1)

@@ -95,14 +95,14 @@ class InputMan:
 			self.clickaroni.click_thread.start_clicking()
 
 	def exit_out(self) -> None:
-		self.clickaroni.owner.card_thread.terminate()
+		self.clickaroni.action.card_stop = True
 		self.clickaroni.click_thread.exit()
 
 
 class Clickaroo:
 
 	def __init__(self, owner):
-		self.owner = owner
+		self.action = owner
 
 		self.click_thread = Clicker(delay=0.001, button=Button.left)
 		self.click_thread.start()
