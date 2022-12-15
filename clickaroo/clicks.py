@@ -137,6 +137,9 @@ class Clickaroo:
 		if click:
 			self.click_thread.mouse_click(1)
 
+	def contribution_test(self):
+		...
+
 
 if __name__ == '__main__':
 
