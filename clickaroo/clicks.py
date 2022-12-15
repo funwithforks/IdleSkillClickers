@@ -29,14 +29,9 @@ class Clicker(threading.Thread):
 		self.running = False
 		self.program_running = True
 
-	def mouse_click(self, clicks) -> None:
-		click_count = 0
-		while click_count < clicks:
-			self.mouse.click(self.button)
-			click_count += 1
-			time.sleep(.02)
-
 	def mouse_one_click(self):
+		if self.running:
+			self.running = False
 		self.mouse.click(self.button)
 		time.sleep(.1)
 
@@ -61,7 +56,7 @@ class Clicker(threading.Thread):
 				if time.time() >= end_time:
 					self.running = False
 				self.mouse.click(self.button)
-				time.sleep(.1)
+				time.sleep(.05)
 
 	def mouse_move(self, x, y) -> None:
 		# mouse.move is relative mouse.position is absoute.
@@ -118,6 +113,8 @@ class Clickaroo:
 		self.inputs = InputMan(self)
 
 		self.input_queue = PriorityQueue()
+		self.input_queue_thread = threading.Thread(target=self.clickaroo_queue, daemon=True)
+		self.input_queue_thread.start()
 
 	def input_queue_handler(self):
 
@@ -128,7 +125,13 @@ class Clickaroo:
 				self.input_queue.get()
 				time.sleep(0.1)
 
-	def put_in_input_queue(self, priority: int, func, *args, **kwargs):
+	def clickaroo_queue(self):
+		while self.click_thread.program_running:
+			if self.input_queue.not_empty:
+				self.get_from_input_queue()
+			time.sleep(.01)
+
+	def put_in_input_queue(self, priority: int, func, *args, **kwargs) -> None:
 		"""This Queue should get commands from other parts of the program.
 		This Queue will run them to avoid crashing xlib."""
 		self.input_queue.put((priority, (func, args, kwargs)))
@@ -137,11 +140,21 @@ class Clickaroo:
 		func, args, kwargs = self.input_queue.get()
 		return func(*args, **kwargs)
 
+	def prune_input_queue(self) -> None:
+		item = self.input_queue.get()
+		if item[0] != 5:
+			self.input_queue.put(item)
+
+	def clear_input_queue(self) -> None:
+		while not self.input_queue.empty():
+			self.input_queue.get()
+
 	def mouse_move_click(self, x: int, y: int, click: bool = False):
 		"""takes in absolute coords based on monitor resolution"""
+
 		self.click_thread.mouse_move(x, y)
 		if click:
-			self.click_thread.mouse_click(1)
+			self.click_thread.mouse_one_click()
 
 
 if __name__ == '__main__':

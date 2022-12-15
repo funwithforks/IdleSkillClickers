@@ -32,28 +32,46 @@ class Action:
 		self.card_thread.start()
 
 	def run_process(self, function):
-		process = Process(target=function)
+		self.manager = Manager()
+		self.card_list = self.manager.list()
+		process = Process(target=function, args=(self.card_list,))
 		process.start()
 		while True:
-			if self.card_stop:
+			if self.card_stop or not self.clickaroni.click_thread.program_running:
 				process.terminate()
-			time.sleep(0.5)
+				self.manager.join()
+				self.manager.shutdown()
+
+			if len(self.card_list) > 0:
+				cards = self.card_list[:]
+				self.card_list.pop()
+				for card in cards[0]:
+					print(f'card: {card} in cards: {cards}')
+					self.tasklet.card_mouse(x=card[0], y=card[1])
+
+			time.sleep(0.1)
 
 	class Tasklet:
 		def __init__(self, owner):
 			self.action = owner
 			self.idle_cv = IdleCV()
 
-		def card_clicker(self):
+		def card_clicker(self, card_man):
+			card_list = card_man
+			print(type(card_list))
+			print(type(card_man))
 			while True:
-				backgrd = self.idle_cv.screenshot(1600, 824, (1600 + 960), (824 + 572))
-				a = self.idle_cv.find_card(backgrd)
+				if self.action.current_location == 'midas' or self.action.current_location == 'fight':
+					backgrd = self.idle_cv.screenshot(1600, 824, (1600 + 960), (824 + 572))
+					a = self.idle_cv.find_card(backgrd)
 
-				print('test')
-				if a:
-					print(a)
-					for card in a:
-						self.card_mouse(x=card[0], y=card[1])
+					print('test')
+					if a:
+						print(f'cards found in loop: {a}')
+						card_list.append(a)
+						# self.action.manager.join()
+						# for card in a:
+							# self.card_mouse(x=card[0], y=card[1])
 				time.sleep(1)
 
 		def x_y_percent(self, x: int, y: int) -> list[int]:
@@ -76,12 +94,12 @@ class Action:
 
 		def card_mouse(self, x: int, y: int) -> None:
 			self.action.clickaroni.click_thread.mouse_move(*self.make_relative(values=self.x_y_percent(x, y)))
-			self.action.clickaroni.click_thread.mouse_click(1)
+			self.action.clickaroni.click_thread.mouse_one_click()
 
 		def rel_mouse_move(self, percentx, percenty, click: bool) -> None:
 			self.action.clickaroni.click_thread.mouse_move(*self.make_relative(percentx, percenty))
 			if click:
-				self.action.clickaroni.click_thread.mouse_click(1)
+				self.action.clickaroni.click_thread.mouse_one_click()
 
 		def toggle_top_skill(self):
 			top_toggle_percents = [25, 82]
@@ -205,7 +223,7 @@ class TestQueue:
 	def the_queue(self) -> None:
 		time.sleep(1)
 
-		while True:
+		while self.actions.clickaroni.click_thread.program_running:
 			self.countdown_timers()
 			print(f'current task is {self.actions.current_task},\tprevious task is {self.actions.previous_task}')
 			if self.q.empty():
