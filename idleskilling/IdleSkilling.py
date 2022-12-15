@@ -39,16 +39,6 @@ class Action:
 				process.terminate()
 			time.sleep(0.5)
 
-	class CardMon(threading.Thread):
-
-		def __init__(self, card_function):
-			threading.Thread.__init__(self)
-			self.runnable = card_function
-			self.daemon = True
-
-		def run(self) -> None:
-			self.runnable()
-
 	class Tasklet:
 		def __init__(self, owner):
 			self.action = owner
@@ -59,7 +49,7 @@ class Action:
 				backgrd = self.idle_cv.screenshot(1600, 824, (1600 + 960), (824 + 572))
 				a = self.idle_cv.find_card(backgrd)
 
-				# print('test')
+				print('test')
 				if a:
 					print(a)
 					for card in a:

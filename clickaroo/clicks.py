@@ -36,6 +36,10 @@ class Clicker(threading.Thread):
 			click_count += 1
 			time.sleep(.02)
 
+	def mouse_one_click(self):
+		self.mouse.click(self.button)
+		time.sleep(.1)
+
 	def start_clicking(self) -> None:
 		self.running = True
 
@@ -124,21 +128,20 @@ class Clickaroo:
 				self.input_queue.get()
 				time.sleep(0.1)
 
-	@staticmethod
-	def input_wrapper(func, *args):
-		return func(*args)
+	def put_in_input_queue(self, priority: int, func, *args, **kwargs):
+		"""This Queue should get commands from other parts of the program.
+		This Queue will run them to avoid crashing xlib."""
+		self.input_queue.put((priority, (func, args, kwargs)))
 
-	def input_queue_put(self, priority: int, func, *args):
-		self.input_queue.put((priority, func, args))
+	def get_from_input_queue(self):
+		func, args, kwargs = self.input_queue.get()
+		return func(*args, **kwargs)
 
 	def mouse_move_click(self, x: int, y: int, click: bool = False):
 		"""takes in absolute coords based on monitor resolution"""
 		self.click_thread.mouse_move(x, y)
 		if click:
 			self.click_thread.mouse_click(1)
-
-	def contribution_test(self):
-		break
 
 
 if __name__ == '__main__':
