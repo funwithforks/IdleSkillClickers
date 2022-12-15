@@ -22,6 +22,9 @@ class Window:
 		if type(isid) == str and len(isid) > 1:
 			return isid.strip()
 
+	def open_idle_skilling(self):
+		popen('steam  steam://rungameid/1048370 &')
+
 	def getactivewindow(self) -> Union[str, None]:
 		"""pyxdotool.Window.getactivewindow runs 'xdotool getactivewindow getwindowpid'
 		to find the pid of idle skilling"""

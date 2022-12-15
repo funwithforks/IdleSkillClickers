@@ -36,11 +36,11 @@ class Action:
 		self.card_list = self.manager.list()
 		process = Process(target=function, args=(self.card_list,))
 		process.start()
-		while True:
+		while self.clickaroni.click_thread.program_running:
 			if self.card_stop or not self.clickaroni.click_thread.program_running:
-				process.terminate()
 				self.manager.join()
 				self.manager.shutdown()
+				process.terminate()
 
 			if len(self.card_list) > 0:
 				cards = self.card_list[:]
@@ -50,6 +50,9 @@ class Action:
 					self.tasklet.card_mouse(x=card[0], y=card[1])
 
 			time.sleep(0.1)
+		self.manager.join()
+		self.manager.shutdown()
+		process.terminate()
 
 	class Tasklet:
 		def __init__(self, owner):
@@ -220,10 +223,16 @@ class TestQueue:
 		self.process.start()
 		# self.actions.card_mon.start()
 
+		self.idle_skilling_running: bool = True if self.actions.xdo.search() else False
+
 	def the_queue(self) -> None:
 		time.sleep(1)
-
 		while self.actions.clickaroni.click_thread.program_running:
+			print(f'search output: {self.actions.xdo.search()}')
+			if not self.actions.xdo.search():
+				time.sleep(1)
+				print('Idle Skilling not running. Sleep 1 second...')
+				continue
 			self.countdown_timers()
 			print(f'current task is {self.actions.current_task},\tprevious task is {self.actions.previous_task}')
 			if self.q.empty():
