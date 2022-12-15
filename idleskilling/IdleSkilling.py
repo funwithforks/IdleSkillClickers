@@ -1,5 +1,5 @@
 import threading
-from multiprocessing import Queue, Process, Value
+from multiprocessing import Queue, Process, Manager
 import datetime
 import time
 from threading import Thread

@@ -2,6 +2,7 @@ import time
 import threading
 from pynput.mouse import Button, Controller as Mouse
 from pynput.keyboard import KeyCode, Key, GlobalHotKeys, Controller as Keyboard
+from queue import PriorityQueue
 
 
 class Tapper(threading.Thread):
@@ -111,6 +112,30 @@ class Clickaroo:
 		self.tapper_thread.start()
 
 		self.inputs = InputMan(self)
+
+		self.input_queue = PriorityQueue()
+
+	def input_queue_handler(self):
+
+		while True:
+			if self.input_queue.empty():
+				time.sleep(0.1)
+			else:
+				self.input_queue.get()
+				time.sleep(0.1)
+
+	@staticmethod
+	def input_wrapper(func, *args):
+		return func(*args)
+
+	def input_queue_put(self, priority: int, func, *args):
+		self.input_queue.put((priority, func, args))
+
+	def mouse_move_click(self, x: int, y: int, click: bool = False):
+		"""takes in absolute coords based on monitor resolution"""
+		self.click_thread.mouse_move(x, y)
+		if click:
+			self.click_thread.mouse_click(1)
 
 
 if __name__ == '__main__':
