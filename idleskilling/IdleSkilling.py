@@ -27,11 +27,11 @@ class Action:
 
 		self.card_stop = False
 		self.card_thread = threading.Thread(
-			target=self.run_process,
+			target=self.run_opencv,
 			args=[self.tasklet.card_clicker], daemon=True)
 		self.card_thread.start()
 
-	def run_process(self, function):
+	def run_opencv(self, function):
 		self.manager = Manager()
 		self.card_list = self.manager.list()
 		process = Process(target=function, args=(self.card_list,))
@@ -46,10 +46,10 @@ class Action:
 				cards = self.card_list[:]
 				self.card_list.pop()
 				for card in cards[0]:
-					print(f'card: {card} in cards: {cards}')
+					# print(f'card: {card} in cards: {cards}')
 					self.tasklet.card_mouse(x=card[0], y=card[1])
 
-			time.sleep(0.1)
+			time.sleep(0.05)
 		self.manager.join()
 		self.manager.shutdown()
 		process.terminate()
@@ -61,14 +61,12 @@ class Action:
 
 		def card_clicker(self, card_man):
 			card_list = card_man
-			print(type(card_list))
-			print(type(card_man))
 			while True:
 				if self.action.current_location == 'midas' or self.action.current_location == 'fight':
 					backgrd = self.idle_cv.screenshot(1600, 824, (1600 + 960), (824 + 572))
 					a = self.idle_cv.find_card(backgrd)
 
-					print('test')
+					# print('test')
 					if a:
 						print(f'cards found in loop: {a}')
 						card_list.append(a)
@@ -96,6 +94,7 @@ class Action:
 					str(tmp.get('Position')[1] + int(tmp.get('Geometry')[1] / (100 / percenty)))]
 
 		def card_mouse(self, x: int, y: int) -> None:
+			# print(f'cardmouse x: {x}, y: {y}')
 			self.action.clickaroni.click_thread.mouse_move(*self.make_relative(values=self.x_y_percent(x, y)))
 			self.action.clickaroni.click_thread.mouse_one_click()
 

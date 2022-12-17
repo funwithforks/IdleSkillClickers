@@ -92,7 +92,7 @@ class IdleCV:
 		# Although I get false positives if I am below 0.91.
 		# I suppose I could further crop the screenshot for each match to where the match should be.
 		background_cv = cv.cvtColor(np.array(background), cv.TM_CCORR_NORMED)
-		result = cv.matchTemplate(background_cv, image, cv.TM_CCORR_NORMED, None, image)
+		result = cv.matchTemplate(background_cv, image, cv.TM_CCORR_NORMED, None, mask=image)
 		# print(*image.shape)
 		w, h = image.shape[1], image.shape[0]
 		loc = np.where(result >= .8)

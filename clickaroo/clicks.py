@@ -33,7 +33,7 @@ class Clicker(threading.Thread):
 		if self.running:
 			self.running = False
 		self.mouse.click(self.button)
-		time.sleep(.1)
+		time.sleep(.05)
 
 	def start_clicking(self) -> None:
 		self.running = True
