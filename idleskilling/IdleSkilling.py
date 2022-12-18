@@ -36,13 +36,8 @@ class Action:
 		self.card_list = self.manager.list()
 		process = Process(target=function, args=(self.card_list,))
 		process.start()
-		while self.clickaroni.click_thread.program_running:
-			if self.card_stop or not self.clickaroni.click_thread.program_running:
-				self.manager.join()
-				self.manager.shutdown()
-				process.terminate()
-
-			if len(self.card_list) > 0:
+		while self.clickaroni.click_thread.program_running and not self.card_stop:
+			while len(self.card_list) > 0:
 				cards = self.card_list[:]
 				self.card_list.pop()
 				for card in cards[0]:
@@ -65,15 +60,10 @@ class Action:
 				if self.action.current_location == 'midas' or self.action.current_location == 'fight':
 					backgrd = self.idle_cv.screenshot(1600, 824, (1600 + 960), (824 + 572))
 					a = self.idle_cv.find_card(backgrd)
-
-					# print('test')
 					if a:
 						print(f'cards found in loop: {a}')
 						card_list.append(a)
-						# self.action.manager.join()
-						# for card in a:
-							# self.card_mouse(x=card[0], y=card[1])
-				time.sleep(1)
+				time.sleep(0.5)
 
 		def x_y_percent(self, x: int, y: int) -> list[int]:
 			"""x_y_percent takes in an x and y coord and turns it into a percent coord for the game window."""
@@ -94,6 +84,7 @@ class Action:
 					str(tmp.get('Position')[1] + int(tmp.get('Geometry')[1] / (100 / percenty)))]
 
 		def card_mouse(self, x: int, y: int) -> None:
+			"""Same as rel_mouse_move but adds an x y percent calc"""
 			# print(f'cardmouse x: {x}, y: {y}')
 			self.action.clickaroni.click_thread.mouse_move(*self.make_relative(values=self.x_y_percent(x, y)))
 			self.action.clickaroni.click_thread.mouse_one_click()

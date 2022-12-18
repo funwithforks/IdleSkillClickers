@@ -53,6 +53,29 @@ class IdleCV:
 
 		return (res >= 0.7).any()
 
+	def image_find_t(self, background, image):
+		# image_find_t takes in a png with transparency in the background and uses it as the
+		# mask and the template. So far it seems to work well at finding the image with any background.
+		# Although I get false positives if I am below 0.91.
+		# I suppose I could further crop the screenshot for each match to where the match should be.
+		background_cv = cv.cvtColor(np.array(background), cv.TM_CCORR_NORMED)
+		result = cv.matchTemplate(background_cv, image, cv.TM_CCORR_NORMED, None, mask=image)
+		# print(*image.shape)
+		w, h = image.shape[1], image.shape[0]
+		loc = np.where(result >= .8)
+
+		# result_img = cv.cvtColor(np.array(background_cv), cv.TM_CCORR_NORMED) # 100% FP
+		result_img = cv.cvtColor(np.array(background_cv), cv.TM_CCOEFF_NORMED)
+		for pt in zip(*loc[::-1]):
+			# cv2.rectangle(image, start_point, end_point, color, thickness)
+			cv.rectangle(result_img, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
+			if (result >= 0.96).any():
+				print('printed')
+				cv.imwrite('colorrec1.png', result_img)
+				cv.imwrite('result1.png', background_cv)
+
+		return (result >= 0.96).any()
+
 	def find_card(self, background) -> Union[list[list[int]], None]:
 		"""find_card finds cards based on contours and returns the center point of each card in the frame.
 		Overlapping cards will interfere with detection..."""
@@ -85,29 +108,6 @@ class IdleCV:
 
 		if len(coords) > 0:
 			return coords
-
-	def image_find_t(self, background, image):
-		# image_find_t takes in a png with transparency in the background and uses it as the
-		# mask and the template. So far it seems to work well at finding the image with any background.
-		# Although I get false positives if I am below 0.91.
-		# I suppose I could further crop the screenshot for each match to where the match should be.
-		background_cv = cv.cvtColor(np.array(background), cv.TM_CCORR_NORMED)
-		result = cv.matchTemplate(background_cv, image, cv.TM_CCORR_NORMED, None, mask=image)
-		# print(*image.shape)
-		w, h = image.shape[1], image.shape[0]
-		loc = np.where(result >= .8)
-
-		# result_img = cv.cvtColor(np.array(background_cv), cv.TM_CCORR_NORMED) # 100% FP
-		result_img = cv.cvtColor(np.array(background_cv), cv.TM_CCOEFF_NORMED)
-		for pt in zip(*loc[::-1]):
-			# cv2.rectangle(image, start_point, end_point, color, thickness)
-			cv.rectangle(result_img, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
-			if (result >= 0.96).any():
-				print('printed')
-				cv.imwrite('colorrec1.png', result_img)
-				cv.imwrite('result1.png', background_cv)
-
-		return (result >= 0.96).any()
 
 	def card_loop(self):
 		while True:
