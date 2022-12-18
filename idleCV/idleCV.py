@@ -97,7 +97,7 @@ class IdleCV:
 					or not (61.8 < round(rect[1][0], 2) < 62.1) \
 					or not (43.8 < round(rect[1][1], 2) < 44.1):
 				continue
-			print('I see card')
+			# print('I see card')
 			# Get the bounding box coordinates of the rectangle
 			box = cv.boxPoints(rect)
 			# Convert the coordinates to integers

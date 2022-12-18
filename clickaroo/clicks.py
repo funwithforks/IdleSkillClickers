@@ -2,7 +2,6 @@ import time
 import threading
 from pynput.mouse import Button, Controller as Mouse
 from pynput.keyboard import KeyCode, Key, GlobalHotKeys, Controller as Keyboard
-from queue import PriorityQueue
 
 
 class Tapper(threading.Thread):
@@ -111,43 +110,6 @@ class Clickaroo:
 		self.tapper_thread.start()
 
 		self.inputs = InputMan(self)
-
-		self.input_queue = PriorityQueue()
-		self.input_queue_thread = threading.Thread(target=self.clickaroo_queue, daemon=True)
-		self.input_queue_thread.start()
-
-	def input_queue_handler(self):
-
-		while True:
-			if self.input_queue.empty():
-				time.sleep(0.1)
-			else:
-				self.input_queue.get()
-				time.sleep(0.1)
-
-	def clickaroo_queue(self):
-		while self.click_thread.program_running:
-			if self.input_queue.not_empty:
-				self.get_from_input_queue()
-			time.sleep(.01)
-
-	def put_in_input_queue(self, priority: int, func, *args, **kwargs) -> None:
-		"""This Queue should get commands from other parts of the program.
-		This Queue will run them to avoid crashing xlib."""
-		self.input_queue.put((priority, (func, args, kwargs)))
-
-	def get_from_input_queue(self):
-		func, args, kwargs = self.input_queue.get()
-		return func(*args, **kwargs)
-
-	def prune_input_queue(self) -> None:
-		item = self.input_queue.get()
-		if item[0] != 5:
-			self.input_queue.put(item)
-
-	def clear_input_queue(self) -> None:
-		while not self.input_queue.empty():
-			self.input_queue.get()
 
 	def mouse_move_click(self, x: int, y: int, click: bool = False):
 		"""takes in absolute coords based on monitor resolution"""

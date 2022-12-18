@@ -61,7 +61,7 @@ class Action:
 					backgrd = self.idle_cv.screenshot(1600, 824, (1600 + 960), (824 + 572))
 					a = self.idle_cv.find_card(backgrd)
 					if a:
-						print(f'cards found in loop: {a}')
+						# print(f'cards found in loop: {a}')
 						card_list.append(a)
 				time.sleep(0.5)
 
