@@ -32,21 +32,21 @@ class Action:
 		self.card_thread.start()
 
 	def run_opencv(self, function):
-		self.manager = Manager()
-		self.card_list = self.manager.list()
-		process = Process(target=function, args=(self.card_list,))
+		manager = Manager()
+		card_list = manager.list()
+		process = Process(target=function, args=(card_list,))
 		process.start()
 		while self.clickaroni.click_thread.program_running and not self.card_stop:
-			while len(self.card_list) > 0:
-				cards = self.card_list[:]
-				self.card_list.pop()
+			while len(card_list) > 0:
+				cards = card_list[:]
+				card_list.pop()
 				for card in cards[0]:
 					# print(f'card: {card} in cards: {cards}')
 					self.tasklet.card_mouse(x=card[0], y=card[1])
 
 			time.sleep(0.05)
-		self.manager.join()
-		self.manager.shutdown()
+		manager.join()
+		manager.shutdown()
 		process.terminate()
 
 	class Tasklet:
@@ -118,18 +118,22 @@ class Action:
 			self.toggle_top_skill()
 			time.sleep(.1)
 
+		def fight_effects_off(self):
+			...
+
 		def fight_loop(self, duration) -> None:
 			self.toggle_top_skill()
 			endtime = time.time() + duration
 			while time.time() <= endtime:
 				self.action.clickaroni.tapper_thread.taps('12345')
-				time.sleep(3)
+				time.sleep(0.1)
+				self.toggle_bottom_skill()
+				self.toggle_bottom_skill()
+				self.action.clickaroni.tapper_thread.taps('12345')
+				self.toggle_bottom_skill()
+				self.toggle_top_skill()
+				time.sleep(2.5)
 			self.toggle_top_skill()
-
-	def interrupt_cards(self, funcy=None) -> None:
-		# this function will be a thread that will run the task. It will be terminated
-		# when pause key pressed.
-		funcy()
 
 	def interrupt_me(self, func=None, funcy=None) -> None:
 		# this function will be a thread that will run the task. It will be terminated
@@ -153,7 +157,7 @@ class Action:
 		self.clickaroni.inputs.start_clicking()
 		time.sleep(5.25)
 		print('\rremoving mark', end='')
-		self.tasklet.toggle_mark(True)
+		self.tasklet.toggle_mark(strafe=True)
 		if self.previous_task == 'midas' or self.previous_task == '':
 			print('\rfight loop for 35 more seconds...', end='')
 			self.tasklet.fight_loop(35.3)

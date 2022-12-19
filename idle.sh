@@ -80,7 +80,9 @@ tunnel_extract_farm () {
 
     xdotool mousemove 1719 992 click 1 sleep 0.1          # get spelunker A
     xdotool mousemove 2493 1267  click 1 sleep 0.1        # assuming ready to extract
-    xdotool mousemove 1898 1336 click 1 sleep 0.1 click 1 # get bag
+    xdotool mousemove 1898 1336 click 1 sleep 0.2 # get bag
+    xdotool click 1 sleep 0.2                     # get bag
+    xdotool click 1 sleep 0.2                     # get bag
 
     while [ $tcounter -le 10 ]
     do
@@ -92,7 +94,9 @@ tunnel_extract_farm () {
         xdotool mousemove 2493 1267 click 1 sleep $(($extract_secs+1)) # jump
         xdotool click 1 # extract
         # open the bag
-        xdotool mousemove 1898 1336 click 1
+        xdotool mousemove 1898 1336 click 1 sleep 0.2 # get bag
+        xdotool click 1 sleep 0.2                     # get bag
+        xdotool click 1 sleep 0.2                     # get bag
     done
 }
 
