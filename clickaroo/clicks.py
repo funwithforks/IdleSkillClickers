@@ -1,10 +1,12 @@
 import time
 import threading
 from pynput.mouse import Button, Controller as Mouse
-from pynput.keyboard import GlobalHotKeys, Controller as Keyboard
+from pynput.keyboard import Controller as Keyboard
 
 
 class Clickaroo(threading.Thread):
+	"""This is a dumb class. It only handles moving the mouse, clicking, and pressing keys.
+	It also listens for key combinations to control the application"""
 
 	def __init__(self):
 		super().__init__()
@@ -14,13 +16,6 @@ class Clickaroo(threading.Thread):
 		self.button = Button.left
 		self.running = False
 		self.program_running = True
-
-		self.listener = GlobalHotKeys({
-			'<ctrl>+<alt>+p': self.toggle_pause,
-			'<ctrl>+<alt>+q': self.exit_out,
-			'<ctrl>+<alt>+t': self.taps,
-		})
-		self.listener.start()
 
 		self.keyboard = Keyboard()
 

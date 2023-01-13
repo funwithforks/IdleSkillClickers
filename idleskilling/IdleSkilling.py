@@ -1,12 +1,13 @@
 import threading
-from multiprocessing import Queue, Process, Manager
 import datetime
 import time
+from queue import Queue
 from threading import Thread
 from clickaroo.clicks import Clickaroo
 from window.pyxdotool import Window
 from idleCV.idleCV import IdleCV
 import tkinter as tk
+from pynput.keyboard import GlobalHotKeys
 
 
 class Action:
@@ -22,6 +23,8 @@ class Action:
 		self.current_task: str = 'midas'
 		self.previous_task: str = ''
 
+		# clickaroni handles clicking, moving the mouse, and pressing keys.
+		# It also listens for key combinations to control the application.
 		self.clickaroni = Clickaroo()
 		self.clickaroni.start()
 
@@ -29,33 +32,51 @@ class Action:
 		self.tasklet = self.Tasklet(self)
 
 		self.card_stop = False
-		self.card_thread = threading.Thread(
-			target=self.run_opencv,
-			args=[self.tasklet.card_clicker], daemon=True)
-		self.card_thread.start()
 
-	def run_opencv(self, function):
-		manager = Manager()
-		card_list = manager.list()
-		process = Process(target=function, args=(card_list,))
-		process.start()
-		while self.clickaroni.program_running and not self.card_stop:
-			while len(card_list) > 0:
-				cards = card_list[:]
-				card_list.pop()
-				for card in cards[0]:
-					# print(f'card: {card} in cards: {cards}')
-					self.tasklet.card_mouse(x=card[0], y=card[1])
+		test_card_thread = threading.Thread(
+			target=self.opencv_thread,
+			daemon=True
+		)
+		test_card_thread.start()
 
-			time.sleep(0.05)
-		manager.join()
-		manager.shutdown()
-		process.terminate()
+		self.listener = GlobalHotKeys({
+			'<ctrl>+<alt>+p': self.clickaroni.toggle_pause,
+			'<ctrl>+<alt>+q': self.clickaroni.exit_out,
+			'<ctrl>+<alt>+t': self.clickaroni.taps,
+		})
+		self.listener.start()
+
+	def opencv_thread(self):
+		if not self.card_stop:
+			self.card_thread = threading.Thread(
+				target=self.tasklet.card_clicker_thread(),
+				daemon=True)
+			self.card_thread.start()
+			while self.clickaroni.program_running and not self.card_stop:
+				while len(self.tasklet.card_list) > 0:
+					cards = self.tasklet.card_list[:]
+					self.tasklet.card_list.pop()
+					for card in cards[0]:
+						# print(f'card: {card} in cards: {cards}')
+						self.tasklet.card_mouse(x=card[0], y=card[1])
 
 	class Tasklet:
 		def __init__(self, owner):
 			self.action = owner
 			self.idle_cv = IdleCV()
+			self.card_list = []
+
+		def card_clicker_thread(self):
+			while True:
+				if self.action.current_location == 'midas' or self.action.current_location == 'fight':
+					backgrd = self.idle_cv.screenshot(1600, 824, (1600 + 960), (824 + 572))
+					a = self.idle_cv.find_card(backgrd)
+					if a:
+						# print(f'cards found in loop: {a}')
+						self.card_list.append(a)
+					else:
+						print('no findy')
+				time.sleep(0.5)
 
 		def card_clicker(self, card_man):
 			card_list = card_man
@@ -279,4 +300,4 @@ class IdleWindow:
 if __name__ == '__main__':
 	q = TestQueue()
 	q.add_to_queue('midas')
-	root = tk.Tk()
+	# root = tk.Tk()
