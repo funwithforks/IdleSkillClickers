@@ -6,6 +6,7 @@ from threading import Thread
 from clickaroo.clicks import Clickaroo
 from window.pyxdotool import Window
 from idleCV.idleCV import IdleCV
+import tkinter as tk
 
 
 class Action:
@@ -21,7 +22,9 @@ class Action:
 		self.current_task: str = 'midas'
 		self.previous_task: str = ''
 
-		self.clickaroni = Clickaroo(self)
+		self.clickaroni = Clickaroo()
+		self.clickaroni.start()
+
 		self.xdo = Window()
 		self.tasklet = self.Tasklet(self)
 
@@ -36,7 +39,7 @@ class Action:
 		card_list = manager.list()
 		process = Process(target=function, args=(card_list,))
 		process.start()
-		while self.clickaroni.click_thread.program_running and not self.card_stop:
+		while self.clickaroni.program_running and not self.card_stop:
 			while len(card_list) > 0:
 				cards = card_list[:]
 				card_list.pop()
@@ -86,13 +89,13 @@ class Action:
 		def card_mouse(self, x: int, y: int) -> None:
 			"""Same as rel_mouse_move but adds an x y percent calc"""
 			# print(f'cardmouse x: {x}, y: {y}')
-			self.action.clickaroni.click_thread.mouse_move(*self.make_relative(values=self.x_y_percent(x, y)))
-			self.action.clickaroni.click_thread.mouse_one_click()
+			self.action.clickaroni.mouse_move(*self.make_relative(values=self.x_y_percent(x, y)))
+			self.action.clickaroni.mouse_one_click()
 
 		def rel_mouse_move(self, percentx, percenty, click: bool) -> None:
-			self.action.clickaroni.click_thread.mouse_move(*self.make_relative(percentx, percenty))
+			self.action.clickaroni.mouse_move(*self.make_relative(percentx, percenty))
 			if click:
-				self.action.clickaroni.click_thread.mouse_one_click()
+				self.action.clickaroni.mouse_one_click()
 
 		def toggle_top_skill(self):
 			top_toggle_percents = [25, 82]
@@ -112,7 +115,7 @@ class Action:
 
 		def toggle_mark(self, strafe: bool = False):
 			self.toggle_bottom_skill()
-			self.action.clickaroni.tapper_thread.taps('1')
+			self.action.clickaroni.taps('1')
 			if strafe:
 				self.tap_strafe()
 			self.toggle_top_skill()
@@ -125,11 +128,11 @@ class Action:
 			self.toggle_top_skill()
 			endtime = time.time() + duration
 			while time.time() <= endtime:
-				self.action.clickaroni.tapper_thread.taps('12345')
+				self.action.clickaroni.taps('12345')
 				time.sleep(0.1)
 				self.toggle_bottom_skill()
 				self.toggle_bottom_skill()
-				self.action.clickaroni.tapper_thread.taps('12345')
+				self.action.clickaroni.taps('12345')
 				self.toggle_bottom_skill()
 				self.toggle_top_skill()
 				time.sleep(2.5)
@@ -150,11 +153,11 @@ class Action:
 		self.current_location = 'midas'
 		print('doing midas click routine')
 		self.tasklet.toggle_mark()
-		self.clickaroni.tapper_thread.taps('3')
+		self.clickaroni.taps('3')
 		time.sleep(.1)
 		print('clicking', end='')
 		self.tasklet.rel_mouse_move(*midas, True)
-		self.clickaroni.inputs.start_clicking()
+		self.clickaroni.start_clicking()
 		time.sleep(5.25)
 		print('\rremoving mark', end='')
 		self.tasklet.toggle_mark(strafe=True)
@@ -221,7 +224,7 @@ class TestQueue:
 
 	def the_queue(self) -> None:
 		time.sleep(1)
-		while self.actions.clickaroni.click_thread.program_running:
+		while self.actions.clickaroni.program_running:
 			print(f'search output: {self.actions.xdo.search()}')
 			if not self.actions.xdo.search():
 				time.sleep(1)
@@ -238,9 +241,9 @@ class TestQueue:
 					self.actions.current_task = task
 					self.actions.transitions(task)
 
-			self.interrupt_task = Thread(target=self.actions.interrupt_me(func=task), daemon=True)
-			self.interrupt_task.start()
-			self.interrupt_task.join()
+			interrupt_task = Thread(target=self.actions.interrupt_me(func=task), daemon=True)
+			interrupt_task.start()
+			interrupt_task.join()
 
 			self.actions.previous_task = task
 
@@ -258,6 +261,22 @@ class TestQueue:
 		self.q.put(something)
 
 
+class IdleWindow:
+	def __init__(self, idleroot: tk.Tk, the_data):
+		self.idleroot = idleroot
+		self.counter = 0
+		self.data = the_data
+		self.label = tk.Label(idleroot, text='Counter: 0')
+		self.label.pack()
+		self.update_label()
+
+	def update_label(self):
+		self.counter += 1
+		self.label['text'] = f'Counter: {self.counter}'
+		self.idleroot.after(1000, self.update_label)
+
+
 if __name__ == '__main__':
 	q = TestQueue()
 	q.add_to_queue('midas')
+	root = tk.Tk()

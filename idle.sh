@@ -28,7 +28,8 @@ check_game_running () {
     CPU_STAT=$(ps -eo %cpu,pid --sort -%cpu | grep "\b${CURRENT_PID}\b" | awk '{ print $1 }' )
     if [ $CPU_STAT == 0 ]; then
             echo -en "\r    Game Froze. Recovery initiated.${CUT}"
-            kill $CURRENT_PID
+            steam steam://rungameid/1048370 -shutdown
+            # kill $CURRENT_PID
             steam  steam://rungameid/1048370
             sleep 10
             focus_idle_skilling
@@ -91,10 +92,12 @@ tunnel_extract_farm () {
         sleep 2.4 # wait for animation
         # assuming jump in progress, can cause loss of learning or dig progress.
         # extract/jump location
-        xdotool mousemove 2493 1267 click 1 sleep $(($extract_secs+1)) # jump
+        xdotool mousemove 2493 1267 click 1 sleep 3 # $(($extract_secs+1)) # jump
         xdotool click 1 # extract
         # open the bag
         xdotool mousemove 1898 1336 click 1 sleep 0.2 # get bag
+        xdotool click 1 sleep 0.2                     # get bag
+        xdotool click 1 sleep 0.2                     # get bag
         xdotool click 1 sleep 0.2                     # get bag
         xdotool click 1 sleep 0.2                     # get bag
     done

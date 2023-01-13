@@ -25,6 +25,9 @@ class Window:
 	def open_idle_skilling(self):
 		popen('steam  steam://rungameid/1048370 &')
 
+	def close_idle_skilling(self):
+		popen('steam steam://rungameid/1048370 -shutdown &')
+
 	def getactivewindow(self) -> Union[str, None]:
 		"""pyxdotool.Window.getactivewindow runs 'xdotool getactivewindow getwindowpid'
 		to find the pid of idle skilling"""
