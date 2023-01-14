@@ -31,13 +31,15 @@ class Action:
 		self.xdo = Window()
 		self.tasklet = self.Tasklet(self)
 
+		# card_stop is to stop looking for cards when True
 		self.card_stop = False
 
-		test_card_thread = threading.Thread(
+		# OpenCV is in a thread. Currently just a card seeker/clicker.
+		self.card_thread = threading.Thread(
 			target=self.opencv_thread,
 			daemon=True
 		)
-		test_card_thread.start()
+		self.card_thread.start()
 
 		self.listener = GlobalHotKeys({
 			'<ctrl>+<alt>+p': self.clickaroni.toggle_pause,
@@ -52,13 +54,6 @@ class Action:
 				target=self.tasklet.card_clicker_thread(),
 				daemon=True)
 			self.card_thread.start()
-			while self.clickaroni.program_running and not self.card_stop:
-				while len(self.tasklet.card_list) > 0:
-					cards = self.tasklet.card_list[:]
-					self.tasklet.card_list.pop()
-					for card in cards[0]:
-						# print(f'card: {card} in cards: {cards}')
-						self.tasklet.card_mouse(x=card[0], y=card[1])
 
 	class Tasklet:
 		def __init__(self, owner):
@@ -68,25 +63,14 @@ class Action:
 
 		def card_clicker_thread(self):
 			while True:
-				if self.action.current_location == 'midas' or self.action.current_location == 'fight':
+				if (self.action.current_location == 'midas' or self.action.current_location == 'fight') and \
+					(self.action.clickaroni.program_running and not self.action.card_stop):
 					backgrd = self.idle_cv.screenshot(1600, 824, (1600 + 960), (824 + 572))
 					a = self.idle_cv.find_card(backgrd)
 					if a:
-						# print(f'cards found in loop: {a}')
-						self.card_list.append(a)
-					else:
-						print('no findy')
-				time.sleep(0.5)
-
-		def card_clicker(self, card_man):
-			card_list = card_man
-			while True:
-				if self.action.current_location == 'midas' or self.action.current_location == 'fight':
-					backgrd = self.idle_cv.screenshot(1600, 824, (1600 + 960), (824 + 572))
-					a = self.idle_cv.find_card(backgrd)
-					if a:
-						# print(f'cards found in loop: {a}')
-						card_list.append(a)
+						for card in a:
+							# print(f'card: {card} in cards: {cards}')
+							self.action.tasklet.card_mouse(x=card[0], y=card[1])
 				time.sleep(0.5)
 
 		def x_y_percent(self, x: int, y: int) -> list[int]:
